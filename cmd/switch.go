@@ -18,7 +18,20 @@ var switchCmd = &cobra.Command{
 	},
 }
 
+var switchCmdHelpTmpl = `
+NAME
+    switch
+	
+DESCRIPTION
+    switch 命令切换到指定别名的 kubeconfig 。
+
+EXAMPLES
+    kubecm switch <name>
+
+`
+
 func init() {
 
 	rootCmd.AddCommand(switchCmd)
+	switchCmd.SetHelpTemplate(switchCmdHelpTmpl)
 }

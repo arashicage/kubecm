@@ -17,6 +17,20 @@ var listCmd = &cobra.Command{
 	},
 }
 
+var listCmdHelpTmpl = `
+NAME
+    list
+	
+DESCRIPTION
+    list 命令用于列出受管的 kubeconfig 的别名和路径。
+
+EXAMPLES
+    kubecm list
+
+`
+
 func init() {
+
 	rootCmd.AddCommand(listCmd)
+	listCmd.SetHelpTemplate(listCmdHelpTmpl)
 }

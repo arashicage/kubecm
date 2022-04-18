@@ -10,6 +10,8 @@ help:
 		echo
 		echo "  tag                   创建 tag"
 		echo "  tag.force             创建 tag (强制，忽略未提交的内容)"
+		echo "  build                 构建 ${APPNAME}"
+		echo "  install               安装 ${APPNAME} 到 /usr/local/bin"
 		echo
 	}
 
@@ -39,18 +41,19 @@ tag.force:
 .PHONY: build
 build:
 	@{
-		echo rm -rf "bin/${APPNAME}"
-		echo gox -osarch="darwin/amd64" \
+		rm -rf "bin/${APPNAME}"
+		gox -osarch="darwin/amd64" \
 		--output="bin/${APPNAME}" \
-		-ldflags="-X 'dino/cmd/version.Version=1.0.1' \
-		-X 'dino/cmd/version.BuildAt=$$(date)' \
-		-X 'dino/cmd/version.OS_Arch=darwin/amd64' \
-		-X 'dino/cmd/version.GitHASH=$$(git rev-parse HEAD)'"
+		-ldflags="-X 'kubecm/cmd.Version=1.0.0' \
+		-X 'kubecm/cmd.BuildAt=$$(date)' \
+		-X 'kubecm/cmd.OS_Arch=darwin/amd64' \
+		-X 'kubecm/cmd.GitHASH=$$(git rev-parse HEAD)'"
+		echo
 	}
 
 .ONESHELL:
 .PHONY: install
 install:
 	@{
-		mv "bin/${APPNAME}" "/usr/local/bin/${APPNAME}"
+		mv -f "bin/${APPNAME}" "/usr/local/bin/${APPNAME}"
 	}

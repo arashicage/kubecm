@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
+
+	"kubecm/utils"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -16,36 +17,25 @@ var rootCmd = &cobra.Command{
 	Run:   func(cmd *cobra.Command, args []string) {},
 }
 
-func FileExists(name string) bool {
-
-	info, err := os.Lstat(name)
-	if err == nil {
-		return !info.IsDir()
-	}
-	return !os.IsNotExist(err)
-}
-
 func initKubecm() {
 
 	conf, err := homedir.Expand(config.AppRC)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	utils.CheckErr(err)
+
 	kubeConfigPath, err := homedir.Expand(config.KubeConfigVault)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	utils.CheckErr(err)
+
+	err = os.MkdirAll(kubeConfigPath, 0755)
+	utils.CheckErr(err)
+
+	if !utils.FileExists(conf) {
+		f, err := os.Create(conf)
+		defer func(f *os.File) {
+			_ = f.Close()
+		}(f)
+		utils.CheckErr(err)
 	}
-	if err := os.MkdirAll(kubeConfigPath, 0755); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	if FileExists(conf) {
-		return
-	}
-	f, err := os.Create(conf)
-	defer f.Close()
+
 }
 
 func init() {
@@ -59,8 +49,6 @@ func init() {
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+
+	_ = rootCmd.Execute()
 }

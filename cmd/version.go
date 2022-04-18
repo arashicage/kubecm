@@ -11,7 +11,7 @@ var (
 	OS_Arch          string = "unknown"
 	GitHASH          string = "unknown"
 	BuildAt          string = "unknown"
-	versionFormatter string = `dinoctl, build at %s
+	versionFormatter string = `kubecm, build at %s
 Version: %s
 OS/Arch: %s
 GitHash: %s, %s for short

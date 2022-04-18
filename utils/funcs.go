@@ -3,22 +3,33 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 
-// CheckErr 工具类应用中检测到出错时，简单退出打印并退出即可
+// CheckErr 对于命令行类的应用，检测到出错时，打印错误并退出就行了
 func CheckErr(err error) {
 	if err != nil {
-		log.Fatal(err)
+		color.Red(err.Error())
+		println()
 	}
 }
 
 func PrettifyPrint(v interface{}) {
 
 	fmt.Println(awsutil.Prettify(v))
+}
+
+func FileExists(name string) bool {
+
+	info, err := os.Lstat(name)
+	if err == nil {
+		return !info.IsDir()
+	}
+	return !os.IsNotExist(err)
 }
 
 func Cat(filename string) {

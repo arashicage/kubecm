@@ -1,8 +1,8 @@
 package config
 
 const (
-	AppRC             = "~/.kubex/kubecm.rc"
-	KubeConfigVault   = "~/.kubex/kubeconfig"
-	DefaultKubeConfig = "~/.kubex/config"
-	WordWrapColumn    = 80
+	AppRC             = "~/.kube/kubecm.yaml"
+	KubeConfigVault   = "~/.kube/kubeconfig"
+	DefaultKubeConfig = "~/.kube/config"
+	WordWrapColumn    = 120
 )

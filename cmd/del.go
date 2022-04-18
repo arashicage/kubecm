@@ -18,6 +18,20 @@ var delCmd = &cobra.Command{
 	},
 }
 
+var delCmdHelpTmpl = `
+NAME
+    del
+	
+DESCRIPTION
+    del 命令用于移除指定别名的 kubeconfig。
+
+EXAMPLES
+    kubecm del <name>
+
+`
+
 func init() {
+
 	rootCmd.AddCommand(delCmd)
+	delCmd.SetHelpTemplate(delCmdHelpTmpl)
 }

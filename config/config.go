@@ -6,11 +6,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
+	"github.com/fatih/color"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/yookoala/realpath"
 	"gopkg.in/yaml.v2"
 
 	"kubecm/utils"
@@ -87,24 +90,32 @@ func copy(src string, dest string) {
 
 	data, err := ioutil.ReadFile(src)
 	utils.CheckErr(err)
-	println(src, dest)
+
 	err = ioutil.WriteFile(dest, data, 0644)
 	utils.CheckErr(err)
 }
 
-// Add add a config
-func (c *Config) Add(name, src string, move bool) *Config {
+// Add 新增配置
+func (c *Config) Add(name, path string, move bool) *Config {
 
-	base := filepath.Base(src)
+	path, err := homedir.Expand(path)
+	utils.CheckErr(errors.WithMessage(err, "展开文件路径"))
+
+	path, err = realpath.Realpath(path)
+	utils.CheckErr(errors.WithMessage(err, "获取 kubeconfig 文件绝对路径失败"))
+
+	base := filepath.Base(path)
+
 	dest, err := homedir.Expand(filepath.Join(KubeConfigVault, base))
 	utils.CheckErr(err)
+
 	c.Configs[name] = dest
 
 	if !move {
-		copy(src, dest)
+		copy(path, dest)
 	} else {
-		err := os.Rename(src, dest)
-		utils.CheckErr(errors.Wrap(err, fmt.Sprintf("移动文件失败: %s -> %s", src, dest)))
+		err := os.Rename(path, dest)
+		utils.CheckErr(errors.Wrap(err, fmt.Sprintf("移动文件失败: %s -> %s", path, dest)))
 	}
 
 	if c.Current == "" {
@@ -117,16 +128,31 @@ func (c *Config) Add(name, src string, move bool) *Config {
 // List config
 func (c *Config) List() {
 
+	if len(c.Configs) == 0 {
+		fmt.Println(fmt.Sprintf("未找到受管的配置，请先通过 kubecm add 添加配置"))
+	}
+
 	current := c.Current
+	greenBold := color.New(color.FgGreen, color.Bold).SprintFunc()
+
+	names := make([]string, 0, len(c.Configs))
+	for k := range c.Configs {
+		names = append(names, k)
+	}
+	sort.Strings(names)
+
 	fmt.Println()
 	fmt.Println(strings.Repeat("=", WordWrapColumn))
-	for name, config := range c.Configs {
-		star := " "
+
+	for _, name := range names {
+		config := c.Configs[name]
+		star := strings.Repeat(" ", len("(current)"))
 		if name == current {
-			star = "*"
+			star = greenBold("(current)")
 		}
-		fmt.Println(fmt.Sprintf("%s %s        %s", star, name, config))
+		fmt.Println(fmt.Sprintf("%s %-24s %s", star, name, config))
 	}
+
 	fmt.Println(strings.Repeat("=", WordWrapColumn))
 	fmt.Println()
 }
@@ -150,7 +176,7 @@ func (c *Config) Switch(name string) *Config {
 	if _, ok := c.Configs[name]; ok {
 		c.Current = name
 	} else {
-		fmt.Println("别名有误，找不到指定名称的配置")
+		fmt.Println("别名有误，找不到指定名称的配置，操作被忽略")
 		fmt.Println()
 	}
 
@@ -170,7 +196,8 @@ func (c *Config) Rename(old, new string) *Config {
 			c.Current = new
 		}
 	} else {
-		fmt.Println("找不到指定别名的 config，操作终止")
+		fmt.Println("找不到指定别名的 config，操作被忽略")
+		println()
 	}
 
 	return c
@@ -186,7 +213,7 @@ func (c *Config) Desc(name string) {
 	}
 }
 
-// Sync 根据 yaml 同步 symlink
+// Sync 根据最新的 kubecm 配置同步 symlink
 func (c *Config) Sync() {
 
 	d, err := yaml.Marshal(c)
@@ -197,8 +224,6 @@ func (c *Config) Sync() {
 
 	defaultKubeConfig, err := homedir.Expand(DefaultKubeConfig)
 	utils.CheckErr(errors.WithMessagef(err, "展开路径 %s 失败", DefaultKubeConfig))
-
-	utils.PrettifyPrint(c)
 
 	// 删掉当前 config 时，current = "-"
 	// 首次添加 config 时，current = ""

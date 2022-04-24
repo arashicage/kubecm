@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/yookoala/realpath"
 	"gopkg.in/yaml.v2"
 
@@ -89,10 +90,10 @@ func (c *Config) SetCurrent(name string) *Config {
 func copy(src string, dest string) {
 
 	data, err := ioutil.ReadFile(src)
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 
 	err = ioutil.WriteFile(dest, data, 0644)
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 }
 
 // Add 新增配置
@@ -107,7 +108,7 @@ func (c *Config) Add(name, path string, move bool) *Config {
 	base := filepath.Base(path)
 
 	dest, err := homedir.Expand(filepath.Join(KubeConfigVault, base))
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 
 	c.Configs[name] = dest
 

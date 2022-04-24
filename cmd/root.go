@@ -20,20 +20,20 @@ var rootCmd = &cobra.Command{
 func initKubecm() {
 
 	conf, err := homedir.Expand(config.AppRC)
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 
 	kubeConfigPath, err := homedir.Expand(config.KubeConfigVault)
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 
 	err = os.MkdirAll(kubeConfigPath, 0755)
-	utils.CheckErr(err)
+	cobra.CheckErr(err)
 
 	if !utils.FileExists(conf) {
 		f, err := os.Create(conf)
 		defer func(f *os.File) {
 			_ = f.Close()
 		}(f)
-		utils.CheckErr(err)
+		cobra.CheckErr(err)
 	}
 
 }

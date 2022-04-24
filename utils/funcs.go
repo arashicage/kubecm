@@ -6,17 +6,9 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
-	"github.com/fatih/color"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
-
-// CheckErr 对于命令行类的应用，检测到出错时，打印错误并退出就行了
-func CheckErr(err error) {
-	if err != nil {
-		color.Red(err.Error())
-		println()
-	}
-}
 
 func PrettifyPrint(v interface{}) {
 
@@ -36,7 +28,7 @@ func Cat(filename string) {
 
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		CheckErr(errors.WithMessagef(err, "failed to get contents of file: %s\n", filename))
+		cobra.CheckErr(errors.WithMessagef(err, "failed to get contents of file: %s\n", filename))
 	} else {
 		fmt.Println(string(content))
 	}

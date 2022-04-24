@@ -100,10 +100,10 @@ func copy(src string, dest string) {
 func (c *Config) Add(name, path string, move bool) *Config {
 
 	path, err := homedir.Expand(path)
-	utils.CheckErr(errors.WithMessage(err, "展开文件路径"))
+	cobra.CheckErr(errors.WithMessage(err, "展开文件路径"))
 
 	path, err = realpath.Realpath(path)
-	utils.CheckErr(errors.WithMessage(err, "获取 kubeconfig 文件绝对路径失败"))
+	cobra.CheckErr(errors.WithMessage(err, "获取 kubeconfig 文件绝对路径失败"))
 
 	base := filepath.Base(path)
 
@@ -116,7 +116,7 @@ func (c *Config) Add(name, path string, move bool) *Config {
 		copy(path, dest)
 	} else {
 		err := os.Rename(path, dest)
-		utils.CheckErr(errors.Wrap(err, fmt.Sprintf("移动文件失败: %s -> %s", path, dest)))
+		cobra.CheckErr(errors.Wrap(err, fmt.Sprintf("移动文件失败: %s -> %s", path, dest)))
 	}
 
 	if c.Current == "" {
@@ -210,7 +210,7 @@ func (c *Config) Desc(name string) {
 	if path, ok := c.Configs[name]; ok {
 		utils.Cat(path)
 	} else {
-		utils.CheckErr(errors.New("找不到指定别名的配置"))
+		cobra.CheckErr(errors.New("找不到指定别名的配置"))
 	}
 }
 
@@ -218,34 +218,34 @@ func (c *Config) Desc(name string) {
 func (c *Config) Sync() {
 
 	d, err := yaml.Marshal(c)
-	utils.CheckErr(errors.WithMessage(err, "数据 marshal 失败"))
+	cobra.CheckErr(errors.WithMessage(err, "数据 marshal 失败"))
 
 	configPath, err := homedir.Expand(AppRC)
-	utils.CheckErr(errors.WithMessagef(err, "展开路径 %s 失败", AppRC))
+	cobra.CheckErr(errors.WithMessagef(err, "展开路径 %s 失败", AppRC))
 
 	defaultKubeConfig, err := homedir.Expand(DefaultKubeConfig)
-	utils.CheckErr(errors.WithMessagef(err, "展开路径 %s 失败", DefaultKubeConfig))
+	cobra.CheckErr(errors.WithMessagef(err, "展开路径 %s 失败", DefaultKubeConfig))
 
 	// 删掉当前 config 时，current = "-"
 	// 首次添加 config 时，current = ""
 	if c.Current != "-" && c.Current != "" {
 		if _, err := os.Lstat(defaultKubeConfig); err == nil {
 			err = os.Remove(defaultKubeConfig)
-			utils.CheckErr(errors.WithMessagef(err, "移除软链 %s 失败", defaultKubeConfig))
+			cobra.CheckErr(errors.WithMessagef(err, "移除软链 %s 失败", defaultKubeConfig))
 		}
 
 		err = os.Symlink(c.Configs[c.Current], defaultKubeConfig)
-		utils.CheckErr(errors.WithMessagef(err, "创建软链 %s 失败", defaultKubeConfig))
+		cobra.CheckErr(errors.WithMessagef(err, "创建软链 %s 失败", defaultKubeConfig))
 	}
 
 	// 删掉当前 config 时，current = "-"
 	if c.Current == "-" {
 		if _, err := os.Lstat(defaultKubeConfig); err == nil {
 			err = os.Remove(defaultKubeConfig)
-			utils.CheckErr(errors.WithMessagef(err, "移除软链 %s 失败", defaultKubeConfig))
+			cobra.CheckErr(errors.WithMessagef(err, "移除软链 %s 失败", defaultKubeConfig))
 		}
 	}
 
 	err = os.WriteFile(configPath, d, 0644)
-	utils.CheckErr(errors.WithMessagef(err, "写入文件 %s 失败", configPath))
+	cobra.CheckErr(errors.WithMessagef(err, "写入文件 %s 失败", configPath))
 }

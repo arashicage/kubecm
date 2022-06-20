@@ -87,12 +87,12 @@ func (c *Config) SetCurrent(name string) *Config {
 	return c
 }
 
-func copy(src string, dest string) {
+func cp(src string, dest string) {
 
 	data, err := ioutil.ReadFile(src)
 	cobra.CheckErr(err)
 
-	err = ioutil.WriteFile(dest, data, 0644)
+	err = ioutil.WriteFile(dest, data, 0600)
 	cobra.CheckErr(err)
 }
 
@@ -113,10 +113,12 @@ func (c *Config) Add(name, path string, move bool) *Config {
 	c.Configs[name] = dest
 
 	if !move {
-		copy(path, dest)
+		cp(path, dest)
 	} else {
 		err := os.Rename(path, dest)
 		cobra.CheckErr(errors.Wrap(err, fmt.Sprintf("移动文件失败: %s -> %s", path, dest)))
+		err = os.Chmod(dest, 0600)
+		cobra.CheckErr(errors.Wrap(err, fmt.Sprintf("调整文件 %s 权限到 0600 失败", dest)))
 	}
 
 	if c.Current == "" {
